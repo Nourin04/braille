@@ -1,50 +1,64 @@
 import streamlit as st
-import numpy as np
-from sklearn.preprocessing import LabelEncoder
-import pyttsx3
+from gtts import gTTS
 import speech_recognition as sr
+import os
 
-# Function to convert text to Braille (A-Z characters)
+# Function to convert text to Braille (use a Braille conversion function here)
 def text_to_braille(text):
-    braille_alphabet = {
-        "A": "⠁", "B": "⠃", "C": "⠉", "D": "⠙", "E": "⠑", "F": "⠋", "G": "⠛", "H": "⠓", 
-        "I": "⠊", "J": "⠚", "K": "⠅", "L": "⠇", "M": "⠍", "N": "⠝", "O": "⠕", "P": "⠏", 
-        "Q": "⠟", "R": "⠗", "S": "⠎", "T": "⠞", "U": "⠥", "V": "⠧", "W": "⠺", "X": "⠭", 
-        "Y": "⠽", "Z": "⠵"
+    # You can implement your own Braille conversion logic or use a pre-built mapping
+    braille_dict = {
+        'a': '⠁', 'b': '⠃', 'c': '⠉', 'd': '⠙', 'e': '⠑', 'f': '⠋', 'g': '⠛',
+        'h': '⠓', 'i': '⠊', 'j': '⠚', 'k': '⠅', 'l': '⠇', 'm': '⠍', 'n': '⠝',
+        'o': '⠕', 'p': '⠏', 'q': '⠟', 'r': '⠗', 's': '⠎', 't': '⠞', 'u': '⠥',
+        'v': '⠧', 'w': '⠺', 'x': '⠭', 'y': '⠽', 'z': '⠵', ' ': '⠂'
     }
-    return " ".join([braille_alphabet.get(char.upper(), "") for char in text if char.isalpha()])
+    braille_text = ''.join([braille_dict.get(char, char) for char in text.lower()])
+    return braille_text
 
-# Function to convert speech to text using SpeechRecognition
+# Function to convert speech to text
 def speech_to_text():
     recognizer = sr.Recognizer()
     with sr.Microphone() as source:
-        st.write("Listening... Speak now")
+        st.write("Listening... Speak now!")
         audio = recognizer.listen(source)
         try:
             text = recognizer.recognize_google(audio)
             st.write(f"Recognized text: {text}")
             return text
         except sr.UnknownValueError:
-            st.write("Sorry, I couldn't understand the audio.")
+            st.write("Sorry, I could not understand the audio.")
             return ""
         except sr.RequestError:
-            st.write("Sorry, there was an issue with the speech recognition service.")
+            st.write("Sorry, there was an error with the speech recognition service.")
             return ""
 
-# Streamlit layout
+# Function to convert text to speech using gTTS
+def text_to_speech(text):
+    tts = gTTS(text=text, lang='en')
+    tts.save("output.mp3")
+    os.system("start output.mp3")  # Plays the saved file (for Windows)
+    # For Linux, use: os.system("mpg321 output.mp3")
+
+# Streamlit Interface
 st.title("Text to Braille and Speech to Braille Converter")
 
-# Option 1: Text to Braille
-st.header("Convert Text to Braille")
-text_input = st.text_input("Enter Text", "")
+# Text to Braille Conversion
+text_input = st.text_area("Enter text to convert to Braille")
 if text_input:
-    braille_text = text_to_braille(text_input)
-    st.write(f"Braille Representation: {braille_text}")
+    braille_output = text_to_braille(text_input)
+    st.write(f"Braille Output: {braille_output}")
 
-# Option 2: Speech to Braille
-st.header("Convert Speech to Braille")
-if st.button("Convert Speech to Text & Braille"):
-    text_from_speech = speech_to_text()
-    if text_from_speech:
-        braille_from_speech = text_to_braille(text_from_speech)
-        st.write(f"Braille Representation from Speech: {braille_from_speech}")
+# Speech to Text Conversion
+if st.button("Convert Speech to Text"):
+    speech_text = speech_to_text()
+    if speech_text:
+        braille_from_speech = text_to_braille(speech_text)
+        st.write(f"Braille Output from Speech: {braille_from_speech}")
+
+# Text to Speech (Optional)
+text_to_speech_button = st.button("Convert Text to Speech")
+if text_to_speech_button:
+    if text_input:
+        text_to_speech(text_input)
+    elif speech_text:
+        text_to_speech(speech_text)
