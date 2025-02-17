@@ -1,5 +1,2 @@
-streamlit 
-pyttsx3 
-speechrecognition 
-numpy 
-scikit-learn
+gtts 
+speechrecognition
